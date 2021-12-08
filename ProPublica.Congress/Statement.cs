@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace ProPublica.Congress
 {
@@ -38,6 +39,6 @@ namespace ProPublica.Congress
         public string Party { get; set; }
 
         [JsonProperty]
-        public StatementSubject[] Subjects { get; set; }
+        public List<StatementSubject> Subjects { get; set; }
     }
 }

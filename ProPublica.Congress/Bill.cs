@@ -85,7 +85,7 @@ namespace ProPublica.Congress
         public string Cosponsors { get; set; }
 
         //[JsonProperty]
-        //public IReadOnlyDictionary<string, int> CosponsorsByParty { get; set; }
+        //public List<string, int> CosponsorsByParty { get; set; }
 
         [JsonProperty]
         public string WithdrawnCosponsors { get; set; }
@@ -97,10 +97,10 @@ namespace ProPublica.Congress
         public string Committees { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<string> CommitteeCodes { get; set; }
+        public List<string> CommitteeCodes { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<string> SubcommitteeCodes { get; set; }
+        public List<string> SubcommitteeCodes { get; set; }
 
         [JsonProperty]
         public DateTime? LatestMajorActionDate { get; set; }
@@ -121,12 +121,12 @@ namespace ProPublica.Congress
         public string SummaryShort { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<BillVersion> Versions { get; set; }
+        public List<BillVersion> Versions { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<BillAction> Actions { get; set; }
+        public List<BillAction> Actions { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<BillVote> Votes { get; set; }
+        public List<BillVote> Votes { get; set; }
     }
 }

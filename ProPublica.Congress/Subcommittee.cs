@@ -42,9 +42,9 @@ namespace ProPublica.Congress
         public string RankingMemberId { get; set; }
 
         [JsonProperty]
-        public IReadOnlyList<CommitteeMember> CurrentMembers { get; set; }
+        public List<CommitteeMember> CurrentMembers { get; set; }
 
         [JsonProperty]
-        public IReadOnlyList<CommitteeMember> FormerMembers { get; set; }
+        public List<CommitteeMember> FormerMembers { get; set; }
     }
 }

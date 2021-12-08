@@ -30,6 +30,6 @@ namespace ProPublica.Congress
         public string RankingMemberId { get; set; }
 
         [JsonProperty]
-        public IReadOnlyList<CommitteeHeaderSubcommittee> Subcommittees { get; set; }
+        public List<CommitteeHeaderSubcommittee> Subcommittees { get; set; }
     }
 }

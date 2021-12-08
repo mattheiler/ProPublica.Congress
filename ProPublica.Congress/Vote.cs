@@ -15,6 +15,6 @@ namespace ProPublica.Congress
         public int RollCall { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<VotePosition> Positions { get; set; }
+        public List<VotePosition> Positions { get; set; }
     }
 }

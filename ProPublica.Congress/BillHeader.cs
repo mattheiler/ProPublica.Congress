@@ -79,10 +79,10 @@ namespace ProPublica.Congress
         public string Committees { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<string> CommitteeCodes { get; set; }
+        public List<string> CommitteeCodes { get; set; }
 
         [JsonProperty]
-        public IReadOnlyCollection<string> SubcommitteeCodes { get; set; }
+        public List<string> SubcommitteeCodes { get; set; }
 
         [JsonProperty]
         public string PrimarySubject { get; set; }
