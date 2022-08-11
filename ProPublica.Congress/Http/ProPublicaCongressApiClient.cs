@@ -288,8 +288,7 @@ namespace ProPublica.Congress.Http
             return response.Response<ExpensesForMemberResponse>();
         }
 
-        public async Task<ExpensesForMemberByCategoryResponse> GetExpensesForMemberByCategory(string memberId,
-            ExpensesByCategory category)
+        public async Task<ExpensesForMemberByCategoryResponse> GetExpensesForMemberByCategory(string memberId, ExpensesByCategory category)
         {
             var response = await GetAsync($"members/{memberId}/office_expenses/category/{category}.json");
             return response.Response<ExpensesForMemberByCategoryResponse>();
