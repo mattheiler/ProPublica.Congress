@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,8 +60,7 @@ namespace ProPublica.Congress.Http
             return GetAsync(request);
         }
 
-        private async Task<ClientResponse> GetAsync(ClientRequest request,
-            CancellationToken cancellationToken = default)
+        private async Task<ClientResponse> GetAsync(ClientRequest request, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -68,8 +68,9 @@ namespace ProPublica.Congress.Http
 
                 while (true)
                 {
-                    using var response = await _http.Request(request.Path).SetQueryParams(request.Query)
-                        .AllowAnyHttpStatus().GetAsync(cancellationToken);
+                    var flurl = _http.Request(request.Path).SetQueryParams(request.Query).AllowAnyHttpStatus();
+
+                    using var response = await flurl.GetAsync(cancellationToken);
 
                     switch ((HttpStatusCode) response.StatusCode)
                     {
@@ -91,8 +92,7 @@ namespace ProPublica.Congress.Http
                         case HttpStatusCode.ServiceUnavailable:
                             throw new InvalidOperationException("Service is unavailable.");
                         default:
-                            throw new InvalidOperationException(
-                                $"Something unexpected happened. ({response.StatusCode})");
+                            throw new InvalidOperationException($"Something unexpected happened. ({response.StatusCode})");
                     }
 
                     var content = await response.GetStringAsync();
@@ -107,11 +107,8 @@ namespace ProPublica.Congress.Http
                     return status switch
                     {
                         ClientResponseStatus.Ok => results,
-                        ClientResponseStatus.Error => throw new InvalidOperationException(
-                            string.Join(Environment.NewLine, results.GetErrors())),
-                        ClientResponseStatus.InternalServerError => throw new InvalidOperationException(
-                            "Internal server error!"),
-                        _ => throw new ArgumentOutOfRangeException($"Invalid response status: {status}.")
+                        ClientResponseStatus.Error => throw new InvalidOperationException(string.Join(Environment.NewLine, results.GetErrors())),
+                        ClientResponseStatus.InternalServerError => throw new InvalidOperationException("Internal server error!"), _ => throw new ArgumentOutOfRangeException($"Invalid response status: {status}.")
                     };
                 }
             }
@@ -185,26 +182,36 @@ namespace ProPublica.Congress.Http
             return response.One<Committee>();
         }
 
-        public async Task<IEnumerable<CommitteeHearing>> GetCommitteeHearings(int congress, string chamber, string id,
-            int index)
+        public async Task<IEnumerable<CommitteeHearing>> GetCommitteeHearings(int congress, int index)
         {
-            var response = await GetAsync($"{congress}/{chamber}/committees/{id}/hearings.json",
-                options => options.Page(index));
+            var response = await GetAsync($"{congress}/committees/hearings.json", options => options.Page(index));
             return response.Many<CommitteeHearing>("hearings");
         }
 
-        public async Task<Subcommittee> GetSubcommittee(int congress, string chamber, string committeeId,
-            string subcommitteeId)
+        public async Task<IEnumerable<CommitteeHearing>> GetCommitteeHearings(int congress, string chamber, string id, int index)
         {
-            var response =
-                await GetAsync($"{congress}/{chamber}/committees/{committeeId}/subcommittees/{subcommitteeId}.json");
+            var response = await GetAsync($"{congress}/{chamber}/committees/{id}/hearings.json", options => options.Page(index));
+            return response.Many<CommitteeHearing>("hearings");
+        }
+
+        public async Task<Subcommittee> GetSubcommittee(int congress, string chamber, string committeeId, string subcommitteeId)
+        {
+            var response = await GetAsync($"{congress}/{chamber}/committees/{committeeId}/subcommittees/{subcommitteeId}.json");
             return response.One<Subcommittee>();
         }
 
-        public async Task<IEnumerable<CommitteeStatement>> GetCommitteeStatements(string committeeId, int index)
+        public async Task<IEnumerable<CommitteeStatement>> GetCommitteeStatements(int congress, string chamber, string committeeId, int index)
         {
             var response = await GetAsync($"statements/committees/{committeeId}.json", options => options.Page(index));
-            return response.Many<CommitteeStatement>();
+            var results = response.Many<CommitteeStatement>().ToList();
+            
+            foreach (var statement in results)
+            {
+                statement.ApiUri = $"https://api.propublica.org/congress/v1/{congress}/{chamber}/committees/{committeeId}.json";
+                statement.CommitteeId = committeeId;
+            }
+
+            return results;
         }
 
         public async Task<IEnumerable<CommitteeCommunication>> GetCommitteeCommunications(int congress, int index)
@@ -241,8 +248,7 @@ namespace ProPublica.Congress.Http
             return response.Many<MemberHeader>();
         }
 
-        public async Task<IEnumerable<MemberHeader>> GetMembersByStateAndDistrict(string chamber, State state,
-            int district)
+        public async Task<IEnumerable<MemberHeader>> GetMembersByStateAndDistrict(string chamber, State state, int district)
         {
             var response = await GetAsync($"members/{chamber}/{state}/{district}/current.json");
             return response.Many<MemberHeader>();
@@ -270,15 +276,13 @@ namespace ProPublica.Congress.Http
 
         #region Expenses
 
-        public async Task<IEnumerable<ExpensesByCategory>> GetExpensesByCategory(ExpensesByCategory category,
-            [Range(2009, 2017)] int year, [Range(1, 4)] int quarter)
+        public async Task<IEnumerable<ExpensesByCategory>> GetExpensesByCategory(ExpensesByCategory category, [Range(2009, 2017)] int year, [Range(1, 4)] int quarter)
         {
             var response = await GetAsync($"office_expenses/category/{category}/{year}/{quarter}.json");
             return response.Many<ExpensesByCategory>();
         }
 
-        public async Task<ExpensesForMemberResponse> GetExpensesForMember(string memberId, [Range(2009, 2017)] int year,
-            [Range(1, 4)] int quarter)
+        public async Task<ExpensesForMemberResponse> GetExpensesForMember(string memberId, [Range(2009, 2017)] int year, [Range(1, 4)] int quarter)
         {
             var response = await GetAsync($"members/{memberId}/office_expenses/{year}/{quarter}.json");
             return response.Response<ExpensesForMemberResponse>();
